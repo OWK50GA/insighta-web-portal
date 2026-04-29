@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -12,6 +13,7 @@ import {
   PlusCircle,
 } from 'lucide-react';
 import { logout } from '@/lib/api';
+import { useEffect } from 'react';
 
 interface User {
   id: string;
@@ -28,9 +30,12 @@ export function Sidebar({ user }: { user: User }) {
 
   const handleLogout = async () => {
     await logout();
-    // TODO: clear cookies and redirect to /login
-    router.push('/login');
+    router.push('/login?logout=1');
   };
+
+  useEffect(() => {
+    console.log(user);
+  })
 
   const isActive = (href: string) => pathname === href;
 
@@ -89,9 +94,11 @@ export function Sidebar({ user }: { user: User }) {
       {/* User Info & Logout */}
       <div className="p-4 border-t border-slate-800">
         <div className="flex items-center gap-3 mb-4 px-2">
-          <img
-            src={user.avatar_url}
+          <Image
+            src={user.avatar_url || `https://avatars.githubusercontent.com/u/0`}
             alt={user.username}
+            width={40}
+            height={40}
             className="w-10 h-10 rounded-full"
           />
           <div className="flex-1 min-w-0">

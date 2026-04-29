@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search as SearchIcon } from 'lucide-react';
+import { AlertCircle, Search as SearchIcon } from 'lucide-react';
 import { searchProfiles } from '@/lib/api';
 import { SearchResultsTable } from '@/components/search-results-table';
 
@@ -20,30 +20,33 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
       setResults(null);
       setHasSearched(false);
+      setError(null);
       return;
     }
 
     try {
       setLoading(true);
-      // TODO: calls GET /api/profiles/search?q=<query>
-      // include header: X-API-Version: 1
+      setError(null);
       const data = await searchProfiles(q);
       setResults(data);
       setSearchQuery(q);
+      setHasSearched(true);
+    } catch {
+      // Keep previous results visible, show error inline
+      setError('Search failed. Please try again.');
       setHasSearched(true);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const handleSearchClick = () => {
-    handleSearch(query);
-  };
+  const handleSearchClick = () => handleSearch(query);
 
   const handleExampleClick = (example: string) => {
     setQuery(example);
@@ -51,22 +54,16 @@ export default function SearchPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearchClick();
-    }
+    if (e.key === 'Enter') handleSearchClick();
   };
 
   return (
     <div className="p-8">
-      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          Natural Language Search
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Natural Language Search</h1>
         <p className="text-slate-600">Search profiles using plain English</p>
       </div>
 
-      {/* Search Input */}
       <Card className="p-6 mb-8 border border-slate-200">
         <div className="flex gap-3">
           <div className="flex-1 relative">
@@ -84,11 +81,10 @@ export default function SearchPage() {
             disabled={loading || !query.trim()}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6"
           >
-            Search
+            {loading ? 'Searching...' : 'Search'}
           </Button>
         </div>
 
-        {/* Example Queries */}
         {!hasSearched && (
           <div className="mt-6 pt-6 border-t border-slate-200">
             <p className="text-sm text-slate-600 mb-3">Try these queries:</p>
@@ -107,8 +103,15 @@ export default function SearchPage() {
         )}
       </Card>
 
-      {/* Results */}
-      {hasSearched && (
+      {/* Inline error — does not clear previous results */}
+      {error && (
+        <Card className="p-4 mb-6 bg-red-50 border border-red-200 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </Card>
+      )}
+
+      {hasSearched && !error && (
         <div>
           {results && results.data.length === 0 ? (
             <Card className="p-12 text-center border border-slate-200">
@@ -127,13 +130,9 @@ export default function SearchPage() {
                 Try another search
               </Button>
             </Card>
-          ) : (
-            <SearchResultsTable
-              results={results}
-              query={searchQuery}
-              loading={loading}
-            />
-          )}
+          ) : results ? (
+            <SearchResultsTable results={results} query={searchQuery} loading={loading} />
+          ) : null}
         </div>
       )}
     </div>

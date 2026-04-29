@@ -6,22 +6,23 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { createProfile, Profile } from '@/lib/api';
-import { mockUser } from '@/lib/mock';
+import { createProfile, Profile, ForbiddenError } from '@/lib/api';
+import { useSession } from '@/lib/session-context';
 
 export default function CreateProfilePage() {
   const router = useRouter();
+  const user = useSession();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdProfile, setCreatedProfile] = useState<Profile | null>(null);
 
-  // Redirect non-admin users
+  // Redirect analysts — server-side middleware also enforces this
   useEffect(() => {
-    if (mockUser.role !== 'admin') {
-      router.push('/dashboard');
+    if (user.role !== 'admin') {
+      router.replace('/dashboard');
     }
-  }, [router]);
+  }, [user.role, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,21 +34,21 @@ export default function CreateProfilePage() {
     try {
       setLoading(true);
       setError(null);
-      // TODO: calls POST /api/profiles with body { name: "..." }
-      // include header: X-API-Version: 1
       const profile = await createProfile(name);
       setCreatedProfile(profile);
       setName('');
     } catch (err) {
-      setError('Failed to create profile');
+      if (err instanceof ForbiddenError) {
+        setError('Insufficient permissions');
+      } else {
+        setError((err as Error).message || 'Failed to create profile');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (mockUser.role !== 'admin') {
-    return null;
-  }
+  if (user.role !== 'admin') return null;
 
   return (
     <div className="p-8 flex items-center justify-center min-h-screen">
@@ -55,9 +56,7 @@ export default function CreateProfilePage() {
         {!createdProfile ? (
           <Card className="p-8 border border-slate-200">
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Create Profile</h1>
-            <p className="text-slate-600 text-sm mb-6">
-              Generate a new profile in the system
-            </p>
+            <p className="text-slate-600 text-sm mb-6">Generate a new profile in the system</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
@@ -100,40 +99,23 @@ export default function CreateProfilePage() {
           <Card className="p-8 border border-slate-200">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-4">
-                <svg
-                  className="w-6 h-6 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <h2 className="text-xl font-bold text-slate-900 mb-2">Profile Created</h2>
-              <p className="text-slate-600 text-sm">
-                Successfully generated a new profile
-              </p>
+              <p className="text-slate-600 text-sm">Successfully generated a new profile</p>
             </div>
 
-            {/* Profile Details */}
             <div className="space-y-4 mb-6 bg-slate-50 p-4 rounded-lg">
               <div>
                 <p className="text-xs font-medium text-slate-600 uppercase">Name</p>
-                <p className="text-lg font-semibold text-slate-900">
-                  {createdProfile.name}
-                </p>
+                <p className="text-lg font-semibold text-slate-900">{createdProfile.name}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium text-slate-600 uppercase">Gender</p>
-                  <p className="font-semibold text-slate-900">
-                    {createdProfile.gender}
-                  </p>
+                  <p className="font-semibold text-slate-900">{createdProfile.gender}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-slate-600 uppercase">Age</p>
@@ -148,9 +130,7 @@ export default function CreateProfilePage() {
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-600 uppercase">ID</p>
-                <p className="text-xs font-mono text-slate-700 bg-white p-2 rounded">
-                  {createdProfile.id}
-                </p>
+                <p className="text-xs font-mono text-slate-700 bg-white p-2 rounded">{createdProfile.id}</p>
               </div>
             </div>
 
@@ -160,12 +140,8 @@ export default function CreateProfilePage() {
             >
               View Profile
             </Button>
-
             <Button
-              onClick={() => {
-                setCreatedProfile(null);
-                setName('');
-              }}
+              onClick={() => { setCreatedProfile(null); setName(''); }}
               variant="outline"
               className="w-full border-slate-300"
             >

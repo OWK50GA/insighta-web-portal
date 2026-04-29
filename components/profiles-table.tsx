@@ -13,16 +13,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getProfiles, deleteProfile, Profile, ProfileFilters } from '@/lib/api';
-import { mockUser } from '@/lib/mock';
+import { AlertCircle, Trash2, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { getProfiles, deleteProfile, Profile, ProfileFilters, ForbiddenError } from '@/lib/api';
 
 interface ProfilesTableProps {
   filters: ProfileFilters;
   onPageChange: (page: number) => void;
+  isAdmin: boolean;
 }
 
-export function ProfilesTable({ filters, onPageChange }: ProfilesTableProps) {
+export function ProfilesTable({ filters, onPageChange, isAdmin }: ProfilesTableProps) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,59 +33,81 @@ export function ProfilesTable({ filters, onPageChange }: ProfilesTableProps) {
     total_pages: 0,
   });
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const fetchProfiles = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getProfiles(filters);
+      setProfiles(result.data);
+      setPagination({
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        total_pages: result.total_pages,
+      });
+    } catch (err) {
+      const message =
+        err instanceof ForbiddenError
+          ? 'Insufficient permissions'
+          : 'Failed to load profiles';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        // TODO: on Apply, call GET /api/profiles with these as query params
-        // include header: X-API-Version: 1
-        const result = await getProfiles(filters);
-        setProfiles(result.data);
-        setPagination({
-          page: result.page,
-          limit: result.limit,
-          total: result.total,
-          total_pages: result.total_pages,
-        });
-      } catch (err) {
-        setError('Failed to load profiles');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfiles();
   }, [filters]);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this profile?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this profile?')) return;
 
     try {
       setDeleting(id);
-      // TODO: Delete calls DELETE /api/profiles/:id with admin token
+      setDeleteError(null);
       await deleteProfile(id);
-      setProfiles(profiles.filter((p) => p.id !== id));
+      setProfiles((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
-      alert('Failed to delete profile');
+      const message =
+        err instanceof ForbiddenError
+          ? 'Insufficient permissions'
+          : 'Failed to delete profile';
+      setDeleteError(message);
     } finally {
       setDeleting(null);
     }
   };
 
-  const isAdmin = mockUser.role === 'admin';
   const start = (pagination.page - 1) * pagination.limit + 1;
   const end = Math.min(pagination.page * pagination.limit, pagination.total);
 
   return (
     <div>
       {error && (
+        <Card className="p-4 mb-4 bg-red-50 border border-red-200 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+            <p className="text-red-700">{error}</p>
+          </div>
+          <Button
+            onClick={fetchProfiles}
+            variant="outline"
+            size="sm"
+            className="gap-2 border-red-300 text-red-700 hover:bg-red-100"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Retry
+          </Button>
+        </Card>
+      )}
+
+      {deleteError && (
         <Card className="p-4 mb-4 bg-red-50 border border-red-200 flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-red-600" />
-          <p className="text-red-700">{error}</p>
+          <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+          <p className="text-red-700">{deleteError}</p>
         </Card>
       )}
 
@@ -95,9 +117,7 @@ export function ProfilesTable({ filters, onPageChange }: ProfilesTableProps) {
             <TableRow>
               <TableHead className="text-slate-700 font-semibold">Name</TableHead>
               <TableHead className="text-slate-700 font-semibold">Gender</TableHead>
-              <TableHead className="text-slate-700 font-semibold">
-                Gender Prob
-              </TableHead>
+              <TableHead className="text-slate-700 font-semibold">Gender Prob</TableHead>
               <TableHead className="text-slate-700 font-semibold">Age</TableHead>
               <TableHead className="text-slate-700 font-semibold">Age Group</TableHead>
               <TableHead className="text-slate-700 font-semibold">Country</TableHead>
@@ -139,9 +159,7 @@ export function ProfilesTable({ filters, onPageChange }: ProfilesTableProps) {
                   </TableCell>
                   <TableCell className="text-slate-700">{profile.gender}</TableCell>
                   <TableCell>
-                    <ProbabilityBadge
-                      value={profile.gender_probability}
-                    />
+                    <ProbabilityBadge value={profile.gender_probability} />
                   </TableCell>
                   <TableCell className="text-slate-700">{profile.age}</TableCell>
                   <TableCell className="text-slate-700">{profile.age_group}</TableCell>
@@ -208,11 +226,8 @@ export function ProfilesTable({ filters, onPageChange }: ProfilesTableProps) {
 
 function ProbabilityBadge({ value }: { value: number }) {
   let bgColor = 'bg-red-100 text-red-800';
-  if (value > 0.8) {
-    bgColor = 'bg-green-100 text-green-800';
-  } else if (value >= 0.5) {
-    bgColor = 'bg-yellow-100 text-yellow-800';
-  }
+  if (value > 0.8) bgColor = 'bg-green-100 text-green-800';
+  else if (value >= 0.5) bgColor = 'bg-yellow-100 text-yellow-800';
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor}`}>
