@@ -15,7 +15,7 @@
  */
 export function getCsrfToken(): string | null {
   // Server-side: document is not available
-  if (typeof document === 'undefined') {
+  if (typeof document === "undefined") {
     return null;
   }
 

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -15,11 +15,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
  */
 export async function POST(_req: NextRequest) {
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get('refresh_token')?.value;
+  const refreshToken = cookieStore.get("refresh_token")?.value;
 
   if (!refreshToken) {
     return NextResponse.json(
-      { status: 'error', message: 'No refresh token' },
+      { status: "error", message: "No refresh token" },
       { status: 401 },
     );
   }
@@ -27,13 +27,13 @@ export async function POST(_req: NextRequest) {
   let backendRes: Response;
   try {
     backendRes = await fetch(`${API_BASE}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
   } catch {
     return NextResponse.json(
-      { status: 'error', message: 'Failed to reach auth server' },
+      { status: "error", message: "Failed to reach auth server" },
       { status: 502 },
     );
   }
@@ -41,7 +41,7 @@ export async function POST(_req: NextRequest) {
   if (!backendRes.ok) {
     // Refresh failed — tell the client to log out
     return NextResponse.json(
-      { status: 'error', message: 'Session expired' },
+      { status: "error", message: "Session expired" },
       { status: 401 },
     );
   }
@@ -49,25 +49,25 @@ export async function POST(_req: NextRequest) {
   const data = await backendRes.json();
   const { access_token, refresh_token: newRefreshToken } = data;
 
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env.NODE_ENV === "production";
 
-  const response = NextResponse.json({ status: 'success' }, { status: 200 });
+  const response = NextResponse.json({ status: "success" }, { status: 200 });
 
   // Set the new access_token as an httpOnly cookie — 3 minutes per PRD
-  response.cookies.set('access_token', access_token, {
+  response.cookies.set("access_token", access_token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
+    sameSite: "lax",
+    path: "/",
     maxAge: 3 * 60,
   });
 
   // Rotate the refresh_token cookie — 5 minutes per PRD
-  response.cookies.set('refresh_token', newRefreshToken, {
+  response.cookies.set("refresh_token", newRefreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
+    sameSite: "lax",
+    path: "/",
     maxAge: 5 * 60,
   });
 

@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { AlertCircle, Search as SearchIcon } from 'lucide-react';
-import { searchProfiles } from '@/lib/api';
-import { SearchResultsTable } from '@/components/search-results-table';
+import { useState, useCallback } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { AlertCircle, Search as SearchIcon } from "lucide-react";
+import { searchProfiles } from "@/lib/api";
+import { SearchResultsTable } from "@/components/search-results-table";
 
 const exampleQueries = [
-  'young males from Nigeria',
-  'female adults',
-  'seniors from the US',
+  "young males from Nigeria",
+  "female adults",
+  "seniors from the US",
 ];
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [query, setQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -39,7 +39,7 @@ export default function SearchPage() {
       setHasSearched(true);
     } catch {
       // Keep previous results visible, show error inline
-      setError('Search failed. Please try again.');
+      setError("Search failed. Please try again.");
       setHasSearched(true);
     } finally {
       setLoading(false);
@@ -54,13 +54,15 @@ export default function SearchPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearchClick();
+    if (e.key === "Enter") handleSearchClick();
   };
 
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Natural Language Search</h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          Natural Language Search
+        </h1>
         <p className="text-slate-600">Search profiles using plain English</p>
       </div>
 
@@ -81,7 +83,7 @@ export default function SearchPage() {
             disabled={loading || !query.trim()}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6"
           >
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? "Searching..." : "Search"}
           </Button>
         </div>
 
@@ -116,11 +118,12 @@ export default function SearchPage() {
           {results && results.data.length === 0 ? (
             <Card className="p-12 text-center border border-slate-200">
               <p className="text-slate-600">
-                No results found for <span className="font-semibold">"{searchQuery}"</span>
+                No results found for{" "}
+                <span className="font-semibold">"{searchQuery}"</span>
               </p>
               <Button
                 onClick={() => {
-                  setQuery('');
+                  setQuery("");
                   setResults(null);
                   setHasSearched(false);
                 }}
@@ -131,7 +134,11 @@ export default function SearchPage() {
               </Button>
             </Card>
           ) : results ? (
-            <SearchResultsTable results={results} query={searchQuery} loading={loading} />
+            <SearchResultsTable
+              results={results}
+              query={searchQuery}
+              loading={loading}
+            />
           ) : null}
         </div>
       )}

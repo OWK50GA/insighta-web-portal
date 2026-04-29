@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -11,9 +11,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { AlertCircle } from 'lucide-react';
-import { getProfiles, Profile } from '@/lib/api';
+} from "@/components/ui/table";
+import { AlertCircle } from "lucide-react";
+import { getProfiles, Profile } from "@/lib/api";
 
 export function RecentProfilesTable() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -28,12 +28,12 @@ export function RecentProfilesTable() {
         const result = await getProfiles({
           limit: 5,
           page: 1,
-          sort_by: 'created_at',
-          order: 'desc',
+          sort_by: "created_at",
+          order: "desc",
         });
         setProfiles(result.data);
       } catch {
-        setError('Failed to load recent profiles');
+        setError("Failed to load recent profiles");
       } finally {
         setLoading(false);
       }
@@ -57,11 +57,19 @@ export function RecentProfilesTable() {
         <TableHeader className="bg-slate-50 border-b border-slate-200">
           <TableRow>
             <TableHead className="text-slate-700 font-semibold">Name</TableHead>
-            <TableHead className="text-slate-700 font-semibold">Gender</TableHead>
+            <TableHead className="text-slate-700 font-semibold">
+              Gender
+            </TableHead>
             <TableHead className="text-slate-700 font-semibold">Age</TableHead>
-            <TableHead className="text-slate-700 font-semibold">Country</TableHead>
-            <TableHead className="text-slate-700 font-semibold">Age Group</TableHead>
-            <TableHead className="text-slate-700 font-semibold">Created At</TableHead>
+            <TableHead className="text-slate-700 font-semibold">
+              Country
+            </TableHead>
+            <TableHead className="text-slate-700 font-semibold">
+              Age Group
+            </TableHead>
+            <TableHead className="text-slate-700 font-semibold">
+              Created At
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -75,7 +83,10 @@ export function RecentProfilesTable() {
             ))
           ) : profiles.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+              <TableCell
+                colSpan={6}
+                className="text-center py-8 text-slate-500"
+              >
                 No profiles found
               </TableCell>
             </TableRow>
@@ -93,12 +104,16 @@ export function RecentProfilesTable() {
                     {profile.name}
                   </Link>
                 </TableCell>
-                <TableCell className="text-slate-700">{profile.gender}</TableCell>
+                <TableCell className="text-slate-700">
+                  {profile.gender}
+                </TableCell>
                 <TableCell className="text-slate-700">{profile.age}</TableCell>
                 <TableCell className="text-slate-700">
                   {profile.country_name} ({profile.country_id})
                 </TableCell>
-                <TableCell className="text-slate-700">{profile.age_group}</TableCell>
+                <TableCell className="text-slate-700">
+                  {profile.age_group}
+                </TableCell>
                 <TableCell className="text-slate-600 text-sm">
                   {new Date(profile.created_at).toLocaleDateString()}
                 </TableCell>

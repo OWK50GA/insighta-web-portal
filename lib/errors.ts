@@ -9,7 +9,7 @@ export class ApiError extends Error {
     message: string,
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     // Restore prototype chain for instanceof checks in transpiled code
     Object.setPrototypeOf(this, new.target.prototype);
   }
@@ -17,18 +17,18 @@ export class ApiError extends Error {
 
 /** Thrown when the backend returns 403 Forbidden. */
 export class ForbiddenError extends ApiError {
-  constructor(message = 'Insufficient permissions') {
+  constructor(message = "Insufficient permissions") {
     super(403, message);
-    this.name = 'ForbiddenError';
+    this.name = "ForbiddenError";
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
 /** Thrown when the backend returns 404 Not Found. */
 export class NotFoundError extends ApiError {
-  constructor(message = 'Not found') {
+  constructor(message = "Not found") {
     super(404, message);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
@@ -44,7 +44,7 @@ export class RateLimitError extends ApiError {
     public readonly retryAfter: number | null,
   ) {
     super(429, message);
-    this.name = 'RateLimitError';
+    this.name = "RateLimitError";
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }

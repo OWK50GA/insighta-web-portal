@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { handler } from '../_handler';
+import { NextRequest } from "next/server";
+import { handler } from "../_handler";
 
 // Handles /api/profiles/<anything> — e.g. /api/profiles/search, /api/profiles/:id
 async function routeHandler(
@@ -7,7 +7,7 @@ async function routeHandler(
   { params }: { params: Promise<{ path: string[] }> },
 ) {
   const { path } = await params;
-  return handler(req, `/${path.join('/')}`);
+  return handler(req, `/${path.join("/")}`);
 }
 
 export const GET = routeHandler;

@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Github, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Github, AlertCircle, CheckCircle2 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 function LoginContent() {
   const searchParams = useSearchParams();
-  const error = searchParams.get('error');
-  const loggedOut = searchParams.get('logout') === '1';
+  const error = searchParams.get("error");
+  const loggedOut = searchParams.get("logout") === "1";
 
   const handleGitHubLogin = () => {
     // Redirect to the backend's /auth/github endpoint which handles PKCE
@@ -25,15 +25,21 @@ function LoginContent() {
         <div className="flex flex-col items-center gap-6">
           {/* Logo/Wordmark */}
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Insighta Labs+</h1>
-            <p className="text-sm text-slate-400">Internal platform for profile intelligence</p>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Insighta Labs+
+            </h1>
+            <p className="text-sm text-slate-400">
+              Internal platform for profile intelligence
+            </p>
           </div>
 
           {/* Logout confirmation */}
           {loggedOut && (
             <div className="w-full flex items-center gap-3 p-3 rounded-lg bg-green-950 border border-green-800">
               <CheckCircle2 className="h-4 w-4 text-green-400 shrink-0" />
-              <p className="text-sm text-green-300">You have been logged out successfully.</p>
+              <p className="text-sm text-green-300">
+                You have been logged out successfully.
+              </p>
             </div>
           )}
 
@@ -42,9 +48,9 @@ function LoginContent() {
             <div className="w-full flex items-center gap-3 p-3 rounded-lg bg-red-950 border border-red-800">
               <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
               <p className="text-sm text-red-300">
-                {error === 'access_denied'
-                  ? 'Access was denied. Please try again.'
-                  : 'Authentication failed. Please try again.'}
+                {error === "access_denied"
+                  ? "Access was denied. Please try again."
+                  : "Authentication failed. Please try again."}
               </p>
             </div>
           )}

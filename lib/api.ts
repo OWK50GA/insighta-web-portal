@@ -13,9 +13,14 @@
  *  - Typed error classes for 403, 404, 429, and generic non-2xx
  */
 
-import { toast } from 'sonner';
-import { ApiError, ForbiddenError, NotFoundError, RateLimitError } from './errors';
-import { getCsrfToken } from './csrf';
+import { toast } from "sonner";
+import {
+  ApiError,
+  ForbiddenError,
+  NotFoundError,
+  RateLimitError,
+} from "./errors";
+import { getCsrfToken } from "./csrf";
 
 export { ApiError, ForbiddenError, NotFoundError, RateLimitError };
 
@@ -36,8 +41,8 @@ let refreshPromise: Promise<void> | null = null;
  * Redirects to /login. Called when a refresh attempt fails.
  */
 function hardLogout(): void {
-  if (typeof window !== 'undefined') {
-    window.location.href = '/login';
+  if (typeof window !== "undefined") {
+    window.location.href = "/login";
   }
 }
 
@@ -53,14 +58,14 @@ async function refreshToken(): Promise<void> {
 
   refreshPromise = (async () => {
     try {
-      const res = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include',
+      const res = await fetch("/api/auth/refresh", {
+        method: "POST",
+        credentials: "include",
       });
 
       if (!res.ok) {
         hardLogout();
-        throw new ApiError(res.status, 'Session expired. Please log in again.');
+        throw new ApiError(res.status, "Session expired. Please log in again.");
       }
     } finally {
       refreshPromise = null;
@@ -74,7 +79,7 @@ async function refreshToken(): Promise<void> {
 // Core fetch wrapper
 // ---------------------------------------------------------------------------
 
-const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /**
  * Central fetch wrapper used by all exported API functions.
@@ -99,17 +104,17 @@ async function fetchWithAuth(
   init: RequestInit = {},
   _isRetry = false,
 ): Promise<Response> {
-  const method = (init.method ?? 'GET').toUpperCase();
+  const method = (init.method ?? "GET").toUpperCase();
 
   // /api/* calls go to the same-origin Next.js proxy (no API_BASE prefix)
   // so the browser sends cookies correctly in production cross-domain setups.
-  const url = path.startsWith('/api/') ? path : `${API_BASE}${path}`;
+  const url = path.startsWith("/api/") ? path : `${API_BASE}${path}`;
 
   const headers = new Headers(init.headers);
 
   // API versioning — required on all /api/* endpoints
-  if (path.startsWith('/api/')) {
-    headers.set('X-API-Version', '1');
+  if (path.startsWith("/api/")) {
+    headers.set("X-API-Version", "1");
   }
 
   // CSRF — required on mutating requests
@@ -118,16 +123,16 @@ async function fetchWithAuth(
     if (!csrfToken) {
       throw new ApiError(
         0,
-        'Session error: CSRF token missing. Please reload the page.',
+        "Session error: CSRF token missing. Please reload the page.",
       );
     }
-    headers.set('X-CSRF-Token', csrfToken);
+    headers.set("X-CSRF-Token", csrfToken);
   }
 
   const res = await fetch(url, {
     ...init,
     headers,
-    credentials: 'include',
+    credentials: "include",
   });
 
   // --- 401: attempt silent refresh once ---
@@ -135,14 +140,14 @@ async function fetchWithAuth(
     if (_isRetry) {
       // Already retried — give up and redirect to login
       hardLogout();
-      throw new ApiError(401, 'Session expired. Please log in again.');
+      throw new ApiError(401, "Session expired. Please log in again.");
     }
 
     try {
       await refreshToken();
     } catch {
       // refreshToken already called hardLogout
-      throw new ApiError(401, 'Session expired. Please log in again.');
+      throw new ApiError(401, "Session expired. Please log in again.");
     }
 
     // Retry the original request — the new access_token cookie is now set
@@ -161,11 +166,11 @@ async function fetchWithAuth(
 
   // --- 429: rate limited ---
   if (res.status === 429) {
-    const retryAfterHeader = res.headers.get('Retry-After');
+    const retryAfterHeader = res.headers.get("Retry-After");
     const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : null;
     const message = retryAfter
       ? `Rate limit reached. Try again in ${retryAfter}s.`
-      : 'Rate limit reached. Please wait before retrying.';
+      : "Rate limit reached. Please wait before retrying.";
     toast(message);
     throw new RateLimitError(message, retryAfter);
   }
@@ -224,7 +229,7 @@ export interface ProfileFilters {
   min_age?: number;
   max_age?: number;
   sort_by?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
   page?: number;
   limit?: number;
 }
@@ -241,19 +246,25 @@ export function filtersToParams(filters: ProfileFilters): URLSearchParams {
   const params = new URLSearchParams();
 
   const add = (key: string, value: unknown) => {
-    if (value === undefined || value === null || value === '' || value === 'All') return;
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      value === "All"
+    )
+      return;
     params.set(key, String(value));
   };
 
-  add('gender', filters.gender);
-  add('age_group', filters.age_group);
-  add('country_id', filters.country_id);
-  add('min_age', filters.min_age);
-  add('max_age', filters.max_age);
-  add('sort_by', filters.sort_by);
-  add('order', filters.order);
-  add('page', filters.page);
-  add('limit', filters.limit);
+  add("gender", filters.gender);
+  add("age_group", filters.age_group);
+  add("country_id", filters.country_id);
+  add("min_age", filters.min_age);
+  add("max_age", filters.max_age);
+  add("sort_by", filters.sort_by);
+  add("order", filters.order);
+  add("page", filters.page);
+  add("limit", filters.limit);
 
   return params;
 }
@@ -263,10 +274,12 @@ export function filtersToParams(filters: ProfileFilters): URLSearchParams {
 // ---------------------------------------------------------------------------
 
 /** GET /api/profiles — list profiles with optional filters and pagination */
-export async function getProfiles(filters: ProfileFilters = {}): Promise<ProfilesResponse> {
+export async function getProfiles(
+  filters: ProfileFilters = {},
+): Promise<ProfilesResponse> {
   const params = filtersToParams(filters);
   const qs = params.toString();
-  const res = await fetchWithAuth(`/api/profiles${qs ? `?${qs}` : ''}`);
+  const res = await fetchWithAuth(`/api/profiles${qs ? `?${qs}` : ""}`);
   return res.json();
 }
 
@@ -286,9 +299,9 @@ export async function searchProfiles(query: string): Promise<ProfilesResponse> {
 
 /** POST /api/profiles — create a new profile (admin only) */
 export async function createProfile(name: string): Promise<Profile> {
-  const res = await fetchWithAuth('/api/profiles', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetchWithAuth("/api/profiles", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
   const body = await res.json();
@@ -299,7 +312,7 @@ export async function createProfile(name: string): Promise<Profile> {
 export async function deleteProfile(id: string): Promise<void> {
   // Backend returns 204 No Content on success
   await fetchWithAuth(`/api/profiles/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 }
 
@@ -309,9 +322,9 @@ export async function deleteProfile(id: string): Promise<void> {
  * backend, then clears all session cookies.
  */
 export async function logout(): Promise<void> {
-  await fetch('/api/auth/logout', {
-    method: 'POST',
-    credentials: 'include',
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
   });
 }
 
@@ -321,6 +334,6 @@ export async function logout(): Promise<void> {
  */
 export function buildExportUrl(filters: ProfileFilters): string {
   const params = filtersToParams(filters);
-  params.set('format', 'csv');
+  params.set("format", "csv");
   return `/api/profiles/export?${params}`;
 }

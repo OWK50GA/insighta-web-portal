@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import Image from 'next/image';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Users, AlertCircle, RefreshCw } from 'lucide-react';
-import { getProfiles, ApiError } from '@/lib/api';
-import { SessionUser } from '@/lib/session';
-import { RecentProfilesTable } from '@/components/recent-profiles-table';
+import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Users, AlertCircle, RefreshCw } from "lucide-react";
+import { getProfiles, ApiError } from "@/lib/api";
+import { SessionUser } from "@/lib/session";
+import { RecentProfilesTable } from "@/components/recent-profiles-table";
 
 interface DashboardClientProps {
   user: SessionUser;
@@ -28,7 +28,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
       setTotal(result.total);
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : 'Failed to load stats';
+        err instanceof ApiError ? err.message : "Failed to load stats";
       setError(message);
     } finally {
       setLoading(false);
@@ -44,7 +44,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
       {/* Welcome Header */}
       <div className="flex items-center gap-4 mb-8">
         <Image
-          src={user.avatar_url || 'https://avatars.githubusercontent.com/u/0'}
+          src={user.avatar_url || "https://avatars.githubusercontent.com/u/0"}
           alt={user.username}
           width={48}
           height={48}
@@ -63,7 +63,9 @@ export function DashboardClient({ user }: DashboardClientProps) {
         <Card className="p-6 bg-white border border-slate-200 shadow-sm">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-600">Total Profiles</p>
+              <p className="text-sm font-medium text-slate-600">
+                Total Profiles
+              </p>
               {loading ? (
                 <Skeleton className="h-10 w-24 mt-2" />
               ) : error ? (
@@ -102,7 +104,9 @@ export function DashboardClient({ user }: DashboardClientProps) {
 
       {/* Recent Profiles */}
       <div>
-        <h2 className="text-xl font-bold text-slate-900 mb-4">Recent Profiles</h2>
+        <h2 className="text-xl font-bold text-slate-900 mb-4">
+          Recent Profiles
+        </h2>
         <RecentProfilesTable />
       </div>
     </div>

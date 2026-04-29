@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -12,9 +12,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { AlertCircle, Trash2, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
-import { getProfiles, deleteProfile, Profile, ProfileFilters, ForbiddenError } from '@/lib/api';
+} from "@/components/ui/table";
+import {
+  AlertCircle,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+} from "lucide-react";
+import {
+  getProfiles,
+  deleteProfile,
+  Profile,
+  ProfileFilters,
+  ForbiddenError,
+} from "@/lib/api";
 
 interface ProfilesTableProps {
   filters: ProfileFilters;
@@ -22,7 +34,11 @@ interface ProfilesTableProps {
   isAdmin: boolean;
 }
 
-export function ProfilesTable({ filters, onPageChange, isAdmin }: ProfilesTableProps) {
+export function ProfilesTable({
+  filters,
+  onPageChange,
+  isAdmin,
+}: ProfilesTableProps) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,8 +66,8 @@ export function ProfilesTable({ filters, onPageChange, isAdmin }: ProfilesTableP
     } catch (err) {
       const message =
         err instanceof ForbiddenError
-          ? 'Insufficient permissions'
-          : 'Failed to load profiles';
+          ? "Insufficient permissions"
+          : "Failed to load profiles";
       setError(message);
     } finally {
       setLoading(false);
@@ -63,7 +79,8 @@ export function ProfilesTable({ filters, onPageChange, isAdmin }: ProfilesTableP
   }, [filters]);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this profile?')) return;
+    if (!window.confirm("Are you sure you want to delete this profile?"))
+      return;
 
     try {
       setDeleting(id);
@@ -73,8 +90,8 @@ export function ProfilesTable({ filters, onPageChange, isAdmin }: ProfilesTableP
     } catch (err) {
       const message =
         err instanceof ForbiddenError
-          ? 'Insufficient permissions'
-          : 'Failed to delete profile';
+          ? "Insufficient permissions"
+          : "Failed to delete profile";
       setDeleteError(message);
     } finally {
       setDeleting(null);
@@ -115,14 +132,32 @@ export function ProfilesTable({ filters, onPageChange, isAdmin }: ProfilesTableP
         <Table>
           <TableHeader className="bg-slate-50 border-b border-slate-200">
             <TableRow>
-              <TableHead className="text-slate-700 font-semibold">Name</TableHead>
-              <TableHead className="text-slate-700 font-semibold">Gender</TableHead>
-              <TableHead className="text-slate-700 font-semibold">Gender Prob</TableHead>
-              <TableHead className="text-slate-700 font-semibold">Age</TableHead>
-              <TableHead className="text-slate-700 font-semibold">Age Group</TableHead>
-              <TableHead className="text-slate-700 font-semibold">Country</TableHead>
-              <TableHead className="text-slate-700 font-semibold">Created At</TableHead>
-              {isAdmin && <TableHead className="text-slate-700 font-semibold">Action</TableHead>}
+              <TableHead className="text-slate-700 font-semibold">
+                Name
+              </TableHead>
+              <TableHead className="text-slate-700 font-semibold">
+                Gender
+              </TableHead>
+              <TableHead className="text-slate-700 font-semibold">
+                Gender Prob
+              </TableHead>
+              <TableHead className="text-slate-700 font-semibold">
+                Age
+              </TableHead>
+              <TableHead className="text-slate-700 font-semibold">
+                Age Group
+              </TableHead>
+              <TableHead className="text-slate-700 font-semibold">
+                Country
+              </TableHead>
+              <TableHead className="text-slate-700 font-semibold">
+                Created At
+              </TableHead>
+              {isAdmin && (
+                <TableHead className="text-slate-700 font-semibold">
+                  Action
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -157,12 +192,18 @@ export function ProfilesTable({ filters, onPageChange, isAdmin }: ProfilesTableP
                       {profile.name}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-slate-700">{profile.gender}</TableCell>
+                  <TableCell className="text-slate-700">
+                    {profile.gender}
+                  </TableCell>
                   <TableCell>
                     <ProbabilityBadge value={profile.gender_probability} />
                   </TableCell>
-                  <TableCell className="text-slate-700">{profile.age}</TableCell>
-                  <TableCell className="text-slate-700">{profile.age_group}</TableCell>
+                  <TableCell className="text-slate-700">
+                    {profile.age}
+                  </TableCell>
+                  <TableCell className="text-slate-700">
+                    {profile.age_group}
+                  </TableCell>
                   <TableCell className="text-slate-700">
                     {profile.country_name} ({profile.country_id})
                   </TableCell>
@@ -225,12 +266,14 @@ export function ProfilesTable({ filters, onPageChange, isAdmin }: ProfilesTableP
 }
 
 function ProbabilityBadge({ value }: { value: number }) {
-  let bgColor = 'bg-red-100 text-red-800';
-  if (value > 0.8) bgColor = 'bg-green-100 text-green-800';
-  else if (value >= 0.5) bgColor = 'bg-yellow-100 text-yellow-800';
+  let bgColor = "bg-red-100 text-red-800";
+  if (value > 0.8) bgColor = "bg-green-100 text-green-800";
+  else if (value >= 0.5) bgColor = "bg-yellow-100 text-yellow-800";
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor}`}>
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor}`}
+    >
       {(value * 100).toFixed(0)}%
     </span>
   );

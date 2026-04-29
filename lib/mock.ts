@@ -101,7 +101,7 @@ export const mockProfiles = [
     age_group: "Teenager",
     country_id: "EG",
     country_name: "Egypt",
-    country_probability: 0.90,
+    country_probability: 0.9,
     created_at: "2024-01-03T15:10:00Z",
   },
   {
