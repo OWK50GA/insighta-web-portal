@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,20 +13,23 @@ import {
 } from '@/components/ui/select';
 import { Download } from 'lucide-react';
 import { ProfilesTable } from '@/components/profiles-table';
-import { ProfileFilters } from '@/lib/api';
+import { ProfileFilters, buildExportUrl } from '@/lib/api';
+import { useSession } from '@/lib/session-context';
 
-const genderOptions = ['All', 'Male', 'Female'];
-const ageGroupOptions = ['All', 'Child', 'Teenager', 'Adult', 'Senior'];
-const sortOptions = ['name', 'age', 'gender_probability', 'country_probability'];
+const genderOptions = ['All', 'male', 'female'];
+const ageGroupOptions = ['All', 'child', 'teenager', 'adult', 'senior'];
+const sortOptions = ['age', 'created_at', 'gender_probability'];
 
 export default function ProfilesPage() {
+  const user = useSession();
+
   const [filters, setFilters] = useState<ProfileFilters>({
     gender: 'All',
     age_group: 'All',
-    country: '',
+    country_id: '',
     min_age: undefined,
     max_age: undefined,
-    sort_by: 'name',
+    sort_by: undefined,
     order: 'asc',
     page: 1,
     limit: 10,
@@ -43,14 +46,14 @@ export default function ProfilesPage() {
   };
 
   const handleClearFilters = () => {
-    const cleared = {
+    const cleared: ProfileFilters = {
       gender: 'All',
       age_group: 'All',
-      country: '',
+      country_id: '',
       min_age: undefined,
       max_age: undefined,
-      sort_by: 'name',
-      order: 'asc' as const,
+      sort_by: undefined,
+      order: 'asc',
       page: 1,
       limit: 10,
     };
@@ -59,9 +62,7 @@ export default function ProfilesPage() {
   };
 
   const handleExportCSV = () => {
-    // TODO: calls GET /api/profiles/export?format=csv with current filters applied
-    // triggers file download
-    alert('Export CSV functionality - TODO: integrate with backend');
+    window.location.href = buildExportUrl(appliedFilters);
   };
 
   const handlePageChange = (page: number) => {
@@ -93,9 +94,7 @@ export default function ProfilesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {/* Gender Filter */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Gender
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Gender</label>
             <Select
               value={filters.gender || 'All'}
               onValueChange={(value) => handleFilterChange('gender', value)}
@@ -105,9 +104,7 @@ export default function ProfilesPage() {
               </SelectTrigger>
               <SelectContent>
                 {genderOptions.map((opt) => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt}
-                  </SelectItem>
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -115,9 +112,7 @@ export default function ProfilesPage() {
 
           {/* Age Group Filter */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Age Group
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Age Group</label>
             <Select
               value={filters.age_group || 'All'}
               onValueChange={(value) => handleFilterChange('age_group', value)}
@@ -127,9 +122,7 @@ export default function ProfilesPage() {
               </SelectTrigger>
               <SelectContent>
                 {ageGroupOptions.map((opt) => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt}
-                  </SelectItem>
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -137,22 +130,18 @@ export default function ProfilesPage() {
 
           {/* Country Filter */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Country
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Country</label>
             <Input
               placeholder="e.g. NG, US"
-              value={filters.country || ''}
-              onChange={(e) => handleFilterChange('country', e.target.value)}
+              value={filters.country_id || ''}
+              onChange={(e) => handleFilterChange('country_id', e.target.value)}
               className="border-slate-300 bg-white"
             />
           </div>
 
           {/* Min Age */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Min Age
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Min Age</label>
             <Input
               type="number"
               placeholder="0"
@@ -166,9 +155,7 @@ export default function ProfilesPage() {
 
           {/* Max Age */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Max Age
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Max Age</label>
             <Input
               type="number"
               placeholder="100"
@@ -182,21 +169,20 @@ export default function ProfilesPage() {
 
           {/* Sort By */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Sort By
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Sort By</label>
             <Select
-              value={filters.sort_by || 'name'}
-              onValueChange={(value) => handleFilterChange('sort_by', value)}
+              value={filters.sort_by || 'none'}
+              onValueChange={(value) =>
+                handleFilterChange('sort_by', value === 'none' ? undefined : value)
+              }
             >
               <SelectTrigger className="bg-white border-slate-300">
-                <SelectValue />
+                <SelectValue placeholder="None" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">None</SelectItem>
                 {sortOptions.map((opt) => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt}
-                  </SelectItem>
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -204,9 +190,7 @@ export default function ProfilesPage() {
 
           {/* Order */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Order
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Order</label>
             <Select
               value={filters.order || 'asc'}
               onValueChange={(value) =>
@@ -242,7 +226,11 @@ export default function ProfilesPage() {
       </Card>
 
       {/* Profiles Table */}
-      <ProfilesTable filters={appliedFilters} onPageChange={handlePageChange} />
+      <ProfilesTable
+        filters={appliedFilters}
+        onPageChange={handlePageChange}
+        isAdmin={user.role === 'admin'}
+      />
     </div>
   );
 }
