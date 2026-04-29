@@ -79,6 +79,12 @@ const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 /**
  * Central fetch wrapper used by all exported API functions.
  *
+ * In production the portal and backend are on different domains, so all
+ * /api/* calls go through Next.js proxy route handlers (same origin) which
+ * forward the session cookies server-side. Auth endpoints (/auth/*) are
+ * called directly on the backend since they don't require cookies from the
+ * browser — they're handled by server-side route handlers.
+ *
  * - Sends cookies automatically via credentials: 'include'
  * - Attaches X-API-Version: 1 on /api/* paths
  * - Attaches X-CSRF-Token on mutating requests (aborts if token absent)
@@ -94,7 +100,10 @@ async function fetchWithAuth(
   _isRetry = false,
 ): Promise<Response> {
   const method = (init.method ?? 'GET').toUpperCase();
-  const url = `${API_BASE}${path}`;
+
+  // /api/* calls go to the same-origin Next.js proxy (no API_BASE prefix)
+  // so the browser sends cookies correctly in production cross-domain setups.
+  const url = path.startsWith('/api/') ? path : `${API_BASE}${path}`;
 
   const headers = new Headers(init.headers);
 

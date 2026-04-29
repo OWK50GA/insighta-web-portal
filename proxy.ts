@@ -5,12 +5,19 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 export const config = {
   matcher: [
     /*
-     * Match the root route, all protected routes, and the login page.
-     * Exclude Next.js internals and static assets.
+     * Match the root route, the login page, and all protected app routes.
+     * Note: (protected) is a Next.js route group — it does NOT appear in URLs.
+     * The actual protected URLs are /dashboard, /profiles, /search, /create, /account.
+     * Exclude Next.js internals, static assets, and API routes.
      */
     '/',
-    '/(protected)/:path*',
     '/login',
+    '/dashboard',
+    '/profiles',
+    '/profiles/:path*',
+    '/search',
+    '/create',
+    '/account',
   ],
 };
 
@@ -81,7 +88,7 @@ function redirectToLogin(request: NextRequest): NextResponse {
   return response;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get('access_token')?.value;
   const refreshToken = request.cookies.get('refresh_token')?.value;
