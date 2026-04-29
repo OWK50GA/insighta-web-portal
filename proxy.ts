@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -10,18 +10,18 @@ export const config = {
      * The actual protected URLs are /dashboard, /profiles, /search, /create, /account.
      * Exclude Next.js internals, static assets, and API routes.
      */
-    '/',
-    '/login',
-    '/dashboard',
-    '/profiles',
-    '/profiles/:path*',
-    '/search',
-    '/create',
-    '/account',
+    "/",
+    "/login",
+    "/dashboard",
+    "/profiles",
+    "/profiles/:path*",
+    "/search",
+    "/create",
+    "/account",
   ],
 };
 
-const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 // SameSite=Lax is required in production: the backend is on a different domain
 // (Railway) and sets cookies on a cross-site redirect back to the portal
@@ -30,18 +30,18 @@ function setTokenCookies(
   response: NextResponse,
   tokens: { access_token: string; refresh_token: string },
 ): void {
-  response.cookies.set('access_token', tokens.access_token, {
+  response.cookies.set("access_token", tokens.access_token, {
     httpOnly: true,
     secure: IS_PRODUCTION,
-    sameSite: 'lax',
-    path: '/',
+    sameSite: "lax",
+    path: "/",
     maxAge: 3 * 60,
   });
-  response.cookies.set('refresh_token', tokens.refresh_token, {
+  response.cookies.set("refresh_token", tokens.refresh_token, {
     httpOnly: true,
     secure: IS_PRODUCTION,
-    sameSite: 'lax',
-    path: '/',
+    sameSite: "lax",
+    path: "/",
     maxAge: 5 * 60,
   });
 }
@@ -55,8 +55,8 @@ async function tryRefresh(refreshToken: string): Promise<{
 } | null> {
   try {
     const res = await fetch(`${API_BASE}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
 
@@ -78,50 +78,54 @@ async function tryRefresh(refreshToken: string): Promise<{
  * Clears all session cookies and redirects to /login.
  */
 function redirectToLogin(request: NextRequest): NextResponse {
-  const loginUrl = new URL('/login', request.url);
+  const loginUrl = new URL("/login", request.url);
   const response = NextResponse.redirect(loginUrl);
 
-  response.cookies.set('access_token', '', { maxAge: 0, path: '/' });
-  response.cookies.set('refresh_token', '', { maxAge: 0, path: '/' });
-  response.cookies.set('csrf_token', '', { maxAge: 0, path: '/' });
+  response.cookies.set("access_token", "", { maxAge: 0, path: "/" });
+  response.cookies.set("refresh_token", "", { maxAge: 0, path: "/" });
+  response.cookies.set("csrf_token", "", { maxAge: 0, path: "/" });
 
   return response;
 }
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const accessToken = request.cookies.get('access_token')?.value;
-  const refreshToken = request.cookies.get('refresh_token')?.value;
+  const accessToken = request.cookies.get("access_token")?.value;
+  const refreshToken = request.cookies.get("refresh_token")?.value;
 
   // -------------------------------------------------------------------------
   // / — redirect to /dashboard if authenticated, otherwise /login
   // -------------------------------------------------------------------------
-  if (pathname === '/') {
+  if (pathname === "/") {
     if (accessToken) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     if (refreshToken) {
       const tokens = await tryRefresh(refreshToken);
       if (tokens) {
-        const redirect = NextResponse.redirect(new URL('/dashboard', request.url));
+        const redirect = NextResponse.redirect(
+          new URL("/dashboard", request.url),
+        );
         setTokenCookies(redirect, tokens);
         return redirect;
       }
     }
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // -------------------------------------------------------------------------
   // /login — redirect to /dashboard if already authenticated
   // -------------------------------------------------------------------------
-  if (pathname === '/login') {
+  if (pathname === "/login") {
     if (accessToken) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     if (refreshToken) {
       const tokens = await tryRefresh(refreshToken);
       if (tokens) {
-        const redirect = NextResponse.redirect(new URL('/dashboard', request.url));
+        const redirect = NextResponse.redirect(
+          new URL("/dashboard", request.url),
+        );
         setTokenCookies(redirect, tokens);
         return redirect;
       }

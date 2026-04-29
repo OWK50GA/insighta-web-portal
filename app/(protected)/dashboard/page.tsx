@@ -1,6 +1,6 @@
-import { cookies } from 'next/headers';
-import { getSession } from '@/lib/session';
-import { DashboardClient } from './dashboard-client';
+import { cookies } from "next/headers";
+import { getSession } from "@/lib/session";
+import { DashboardClient } from "./dashboard-client";
 
 /**
  * Dashboard page — server component.

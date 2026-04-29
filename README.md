@@ -90,6 +90,7 @@ Client-side 401 responses are handled by `fetchWithAuth` via the `POST /api/auth
 ### Logout
 
 Logout calls `POST /api/auth/logout` (Next.js route handler) which:
+
 1. Reads the `refresh_token` httpOnly cookie server-side
 2. Forwards it to `POST /auth/logout` on the backend (best-effort)
 3. Clears all three session cookies regardless of backend response
@@ -101,11 +102,11 @@ Logout calls `POST /api/auth/logout` (Next.js route handler) which:
 
 `middleware.ts` runs on the Edge runtime and intercepts every request to `/`, `/login`, and `/(protected)/*`.
 
-| Route | Behaviour |
-|---|---|
-| `/` | Authenticated → redirect to `/dashboard`. Refresh token only → silent refresh → `/dashboard`. Neither → `/login`. |
-| `/login` | Authenticated → redirect to `/dashboard`. Refresh token only → silent refresh → `/dashboard`. Neither → render login page. |
-| `/(protected)/*` | Authenticated → pass through. Refresh token only → silent refresh → redirect to same URL. Neither → `/login`. |
+| Route            | Behaviour                                                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `/`              | Authenticated → redirect to `/dashboard`. Refresh token only → silent refresh → `/dashboard`. Neither → `/login`.          |
+| `/login`         | Authenticated → redirect to `/dashboard`. Refresh token only → silent refresh → `/dashboard`. Neither → render login page. |
+| `/(protected)/*` | Authenticated → pass through. Refresh token only → silent refresh → redirect to same URL. Neither → `/login`.              |
 
 ---
 
@@ -132,10 +133,10 @@ The export button calls `buildExportUrl(filters)` which points to `GET /api/prof
 
 ## Role-Based Access
 
-| Role | Permissions |
-|---|---|
-| `analyst` | View profiles, search, export CSV, view account |
-| `admin` | Everything analyst can do + create profiles, delete profiles |
+| Role      | Permissions                                                  |
+| --------- | ------------------------------------------------------------ |
+| `analyst` | View profiles, search, export CSV, view account              |
+| `admin`   | Everything analyst can do + create profiles, delete profiles |
 
 Role is derived from the live session (`GET /auth/me`) — never from client-side state. The sidebar hides "Create Profile" for analysts. The profile detail page hides the "Delete" button for analysts. Navigating directly to `/create` as an analyst redirects to `/dashboard`.
 
@@ -143,16 +144,16 @@ Role is derived from the live session (`GET /auth/me`) — never from client-sid
 
 ## Pages
 
-| Route | Description |
-|---|---|
-| `GET /` | Redirects to `/dashboard` or `/login` based on session |
-| `GET /login` | GitHub OAuth entry point. Shows logout confirmation (`?logout=1`) and error messages (`?error=`) |
-| `GET /dashboard` | Total profile count + 5 most recent profiles |
-| `GET /profiles` | Browse profiles with filters (gender, age group, country, age range, sort) and pagination |
-| `GET /profiles/[id]` | Full profile detail. Admin-only delete button |
-| `GET /search` | Natural language search |
-| `GET /create` | Create profile by name (admin only — analysts are redirected) |
-| `GET /account` | Live session info (username, email, role, avatar, member since) + logout |
+| Route                | Description                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `GET /`              | Redirects to `/dashboard` or `/login` based on session                                           |
+| `GET /login`         | GitHub OAuth entry point. Shows logout confirmation (`?logout=1`) and error messages (`?error=`) |
+| `GET /dashboard`     | Total profile count + 5 most recent profiles                                                     |
+| `GET /profiles`      | Browse profiles with filters (gender, age group, country, age range, sort) and pagination        |
+| `GET /profiles/[id]` | Full profile detail. Admin-only delete button                                                    |
+| `GET /search`        | Natural language search                                                                          |
+| `GET /create`        | Create profile by name (admin only — analysts are redirected)                                    |
+| `GET /account`       | Live session info (username, email, role, avatar, member since) + logout                         |
 
 ---
 
@@ -200,8 +201,8 @@ Visit `http://localhost:3000`. The root route redirects to `/dashboard` if authe
 
 Confidence levels are colour-coded throughout the UI:
 
-| Colour | Range | Label |
-|---|---|---|
-| Green | > 80% | High |
+| Colour | Range  | Label  |
+| ------ | ------ | ------ |
+| Green  | > 80%  | High   |
 | Yellow | 50–80% | Medium |
-| Red | < 50% | Low |
+| Red    | < 50%  | Low    |

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { createContext, useContext } from 'react';
-import { SessionUser } from './session';
+import { createContext, useContext } from "react";
+import { SessionUser } from "./session";
 
 const SessionContext = createContext<SessionUser | null>(null);
 
@@ -24,7 +24,7 @@ export function SessionProvider({
 export function useSession(): SessionUser {
   const user = useContext(SessionContext);
   if (!user) {
-    throw new Error('useSession must be used within a SessionProvider');
+    throw new Error("useSession must be used within a SessionProvider");
   }
   return user;
 }

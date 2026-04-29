@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -11,7 +11,7 @@ export interface SessionUser {
   id: string;
   username: string;
   email: string;
-  role: 'admin' | 'analyst';
+  role: "admin" | "analyst";
   avatar_url: string;
   created_at: string;
 }
@@ -28,14 +28,16 @@ export interface SessionUser {
  * This function is intended for server-side use only (middleware, server
  * components, route handlers). It must not be called from client components.
  */
-export async function getSession(cookieHeader: string): Promise<SessionUser | null> {
+export async function getSession(
+  cookieHeader: string,
+): Promise<SessionUser | null> {
   try {
     const res = await fetch(`${API_BASE}/auth/me`, {
-      method: 'GET',
+      method: "GET",
       headers: {
         Cookie: cookieHeader,
       },
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     if (!res.ok) {
@@ -58,10 +60,12 @@ export async function getSession(cookieHeader: string): Promise<SessionUser | nu
  * Note: `redirect()` from next/navigation throws internally, so callers do
  * not need to handle the return value when the session is null.
  */
-export async function requireSession(cookieHeader: string): Promise<SessionUser> {
+export async function requireSession(
+  cookieHeader: string,
+): Promise<SessionUser> {
   const user = await getSession(cookieHeader);
   if (!user) {
-    redirect('/login');
+    redirect("/login");
   }
   return user;
 }

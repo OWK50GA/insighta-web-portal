@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
@@ -11,15 +11,15 @@ import {
   Settings,
   LogOut,
   PlusCircle,
-} from 'lucide-react';
-import { logout } from '@/lib/api';
-import { useEffect } from 'react';
+} from "lucide-react";
+import { logout } from "@/lib/api";
+import { useEffect } from "react";
 
 interface User {
   id: string;
   username: string;
   email: string;
-  role: 'admin' | 'analyst';
+  role: "admin" | "analyst";
   avatar_url: string;
   created_at: string;
 }
@@ -30,20 +30,20 @@ export function Sidebar({ user }: { user: User }) {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/login?logout=1');
+    router.push("/login?logout=1");
   };
 
   useEffect(() => {
     console.log(user);
-  })
+  });
 
   const isActive = (href: string) => pathname === href;
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/profiles', label: 'Profiles', icon: Users },
-    { href: '/search', label: 'Search', icon: Search },
-    { href: '/account', label: 'Account', icon: Settings },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/profiles", label: "Profiles", icon: Users },
+    { href: "/search", label: "Search", icon: Search },
+    { href: "/account", label: "Account", icon: Settings },
   ];
 
   return (
@@ -63,8 +63,8 @@ export function Sidebar({ user }: { user: User }) {
               <button
                 className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors ${
                   isActive(item.href)
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-300 hover:bg-slate-800/50'
+                    ? "bg-slate-800 text-white"
+                    : "text-slate-300 hover:bg-slate-800/50"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -75,13 +75,13 @@ export function Sidebar({ user }: { user: User }) {
         })}
 
         {/* Admin-only items */}
-        {user.role === 'admin' && (
+        {user.role === "admin" && (
           <Link href="/create">
             <button
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors ${
-                isActive('/create')
-                  ? 'bg-slate-800 text-white'
-                  : 'text-slate-300 hover:bg-slate-800/50'
+                isActive("/create")
+                  ? "bg-slate-800 text-white"
+                  : "text-slate-300 hover:bg-slate-800/50"
               }`}
             >
               <PlusCircle className="h-4 w-4" />

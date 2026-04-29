@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
-const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /**
  * Shared proxy handler for all /api/profiles/* requests.
@@ -14,11 +14,17 @@ const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
  * @param req - The incoming Next.js request
  * @param subPath - The path after /api/profiles (e.g. '' | '/search' | '/123')
  */
-export async function handler(req: NextRequest, subPath: string): Promise<NextResponse> {
+export async function handler(
+  req: NextRequest,
+  subPath: string,
+): Promise<NextResponse> {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
 
-  console.log('[proxy] forwarding cookies:', cookieHeader.replace(/access_token=[^;]+/, 'access_token=<redacted>'));
+  console.log(
+    "[proxy] forwarding cookies:",
+    cookieHeader.replace(/access_token=[^;]+/, "access_token=<redacted>"),
+  );
 
   const backendPath = `/api/profiles${subPath}`;
   const backendUrl = new URL(backendPath, API_BASE);
@@ -29,20 +35,20 @@ export async function handler(req: NextRequest, subPath: string): Promise<NextRe
   });
 
   const headers = new Headers();
-  headers.set('Cookie', cookieHeader);
-  headers.set('X-API-Version', '1');
+  headers.set("Cookie", cookieHeader);
+  headers.set("X-API-Version", "1");
 
   const method = req.method.toUpperCase();
 
   // Forward CSRF token on mutating requests
-  const csrfToken = cookieStore.get('csrf_token')?.value;
+  const csrfToken = cookieStore.get("csrf_token")?.value;
   if (MUTATING.has(method) && csrfToken) {
-    headers.set('X-CSRF-Token', csrfToken);
+    headers.set("X-CSRF-Token", csrfToken);
   }
 
   // Forward Content-Type for requests with a body
-  const contentType = req.headers.get('content-type');
-  if (contentType) headers.set('Content-Type', contentType);
+  const contentType = req.headers.get("content-type");
+  if (contentType) headers.set("Content-Type", contentType);
 
   let body: ArrayBuffer | undefined;
   if (MUTATING.has(method)) {
@@ -59,17 +65,18 @@ export async function handler(req: NextRequest, subPath: string): Promise<NextRe
     });
   } catch {
     return NextResponse.json(
-      { status: 'error', message: 'Failed to reach backend' },
+      { status: "error", message: "Failed to reach backend" },
       { status: 502 },
     );
   }
 
   // Stream the response back — handles both JSON and CSV
   const responseHeaders = new Headers();
-  const contentTypeRes = backendRes.headers.get('content-type');
-  if (contentTypeRes) responseHeaders.set('Content-Type', contentTypeRes);
-  const contentDisposition = backendRes.headers.get('content-disposition');
-  if (contentDisposition) responseHeaders.set('Content-Disposition', contentDisposition);
+  const contentTypeRes = backendRes.headers.get("content-type");
+  if (contentTypeRes) responseHeaders.set("Content-Type", contentTypeRes);
+  const contentDisposition = backendRes.headers.get("content-disposition");
+  if (contentDisposition)
+    responseHeaders.set("Content-Disposition", contentDisposition);
 
   return new NextResponse(backendRes.body, {
     status: backendRes.status,
