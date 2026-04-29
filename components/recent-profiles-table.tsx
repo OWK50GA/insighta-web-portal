@@ -12,18 +12,28 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { AlertCircle } from 'lucide-react';
 import { getProfiles, Profile } from '@/lib/api';
 
 export function RecentProfilesTable() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        // TODO: fetch from GET /api/profiles?limit=5&page=1
-        const result = await getProfiles({ limit: 5, page: 1 });
+        setError(null);
+        // Fetch 5 most recently created profiles
+        const result = await getProfiles({
+          limit: 5,
+          page: 1,
+          sort_by: 'created_at',
+          order: 'desc',
+        });
         setProfiles(result.data);
+      } catch {
+        setError('Failed to load recent profiles');
       } finally {
         setLoading(false);
       }
@@ -31,6 +41,15 @@ export function RecentProfilesTable() {
 
     fetchProfiles();
   }, []);
+
+  if (error) {
+    return (
+      <Card className="p-4 bg-red-50 border border-red-200 flex items-center gap-3">
+        <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+        <p className="text-sm text-red-700">{error}</p>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border border-slate-200 shadow-sm">
