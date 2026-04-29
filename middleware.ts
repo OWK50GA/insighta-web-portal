@@ -16,11 +16,31 @@ export const config = {
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
+// SameSite=Lax is required in production: the backend is on a different domain
+// (Railway) and sets cookies on a cross-site redirect back to the portal
+// (Vercel). SameSite=Strict would block those cookies on the first request.
+function setTokenCookies(
+  response: NextResponse,
+  tokens: { access_token: string; refresh_token: string },
+): void {
+  response.cookies.set('access_token', tokens.access_token, {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 3 * 60,
+  });
+  response.cookies.set('refresh_token', tokens.refresh_token, {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 5 * 60,
+  });
+}
+
 /**
  * Attempts a silent token refresh by calling the backend directly.
- * On success, returns the new tokens so the caller can set them on both
- * the response (so the browser gets them) AND the request headers
- * (so server components downstream see them via cookies()).
  */
 async function tryRefresh(refreshToken: string): Promise<{
   access_token: string;
@@ -77,12 +97,7 @@ export async function middleware(request: NextRequest) {
       const tokens = await tryRefresh(refreshToken);
       if (tokens) {
         const redirect = NextResponse.redirect(new URL('/dashboard', request.url));
-        redirect.cookies.set('access_token', tokens.access_token, {
-          httpOnly: true, secure: IS_PRODUCTION, sameSite: 'strict', path: '/', maxAge: 3 * 60,
-        });
-        redirect.cookies.set('refresh_token', tokens.refresh_token, {
-          httpOnly: true, secure: IS_PRODUCTION, sameSite: 'strict', path: '/', maxAge: 5 * 60,
-        });
+        setTokenCookies(redirect, tokens);
         return redirect;
       }
     }
@@ -100,12 +115,7 @@ export async function middleware(request: NextRequest) {
       const tokens = await tryRefresh(refreshToken);
       if (tokens) {
         const redirect = NextResponse.redirect(new URL('/dashboard', request.url));
-        redirect.cookies.set('access_token', tokens.access_token, {
-          httpOnly: true, secure: IS_PRODUCTION, sameSite: 'strict', path: '/', maxAge: 3 * 60,
-        });
-        redirect.cookies.set('refresh_token', tokens.refresh_token, {
-          httpOnly: true, secure: IS_PRODUCTION, sameSite: 'strict', path: '/', maxAge: 5 * 60,
-        });
+        setTokenCookies(redirect, tokens);
         return redirect;
       }
     }
@@ -126,15 +136,9 @@ export async function middleware(request: NextRequest) {
     const tokens = await tryRefresh(refreshToken);
     if (tokens) {
       // Redirect back to the same URL so the browser makes a fresh request
-      // with the new cookies already set. This is more reliable than patching
-      // the request headers, which Next.js doesn't always honour in cookies().
+      // with the new cookies already set.
       const response = NextResponse.redirect(request.url);
-      response.cookies.set('access_token', tokens.access_token, {
-        httpOnly: true, secure: IS_PRODUCTION, sameSite: 'strict', path: '/', maxAge: 3 * 60,
-      });
-      response.cookies.set('refresh_token', tokens.refresh_token, {
-        httpOnly: true, secure: IS_PRODUCTION, sameSite: 'strict', path: '/', maxAge: 5 * 60,
-      });
+      setTokenCookies(response, tokens);
       return response;
     }
     return redirectToLogin(request);
